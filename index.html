@@ -1998,22 +1998,24 @@
 </style>
 
 <script>
-  // ── Export all data ──
+  // ── Export all data as separate files for GitHub ──
   function exportData() {
-    const data = {
-      videos:  JSON.parse(localStorage.getItem('be6player_videos') || '[]'),
-      posts:   JSON.parse(localStorage.getItem('be6player_posts')  || '[]'),
-      stats:   JSON.parse(localStorage.getItem('be6player_stats')  || '[]'),
-      week:    JSON.parse(localStorage.getItem('be6player_week')   || 'null'),
-      exported: new Date().toISOString()
+    const items = {
+      videos: JSON.parse(localStorage.getItem('be6player_videos') || '[]'),
+      posts:  JSON.parse(localStorage.getItem('be6player_posts')  || '[]'),
+      stats:  JSON.parse(localStorage.getItem('be6player_stats')  || '[]'),
+      week:   JSON.parse(localStorage.getItem('be6player_week')   || 'null'),
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = 'be6player_data_' + new Date().toISOString().slice(0,10) + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    Object.entries(items).forEach(([key, data]) => {
+      if (data === null) return;
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = key + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   }
 
   // ── Import data from JSON file ──
@@ -2419,9 +2421,25 @@
   }
 
   // ── Apply language on load ──
-  (function initLang() {
+  function initLang() {
     const lang = localStorage.getItem('be6player_lang') || 'en';
     setLanguage(lang);
+  }
+
+  // ── Load data from GitHub, then init ──
+  (async function initApp() {
+    const BASE = 'https://raw.githubusercontent.com/OndraSpalek/be6player_web/main/data/';
+    const keys = ['videos', 'posts', 'stats', 'week'];
+    await Promise.all(keys.map(async (key) => {
+      try {
+        const res = await fetch(BASE + key + '.json?t=' + Date.now());
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem('be6player_' + key, JSON.stringify(data));
+        }
+      } catch (e) { /* fallback to existing localStorage */ }
+    }));
+    initLang();
   })();
 </script>
 
