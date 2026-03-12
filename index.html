@@ -1,0 +1,2441 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BE6PLAYER — Discover the Numbers Behind the Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --amber: #c85f00;
+      --amber-light: #e8820a;
+      --amber-pale: #fff4ec;
+      --white: #ffffff;
+      --off-white: #f8f9fb;
+      --grey-light: #eef1f5;
+      --grey-mid: #9aacbe;
+      --grey-dark: #4a5568;
+      --navy: #1a2540;
+      --text: #1e2535;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--white);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--off-white); }
+    ::-webkit-scrollbar-thumb { background: var(--amber); border-radius: 3px; }
+
+    /* ══════════════════════════════
+       NAVIGATION
+    ══════════════════════════════ */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+      height: 68px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(200,95,0,0.12);
+    }
+
+    .nav-logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 28px;
+      letter-spacing: 1px;
+      color: var(--amber);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--navy); }
+
+    .nav-links {
+      display: flex; gap: 36px; list-style: none;
+    }
+    .nav-links a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--grey-dark);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--amber); }
+
+    .nav-yt {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 20px;
+      background: var(--amber);
+      color: white;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .nav-yt:hover { background: var(--amber-light); transform: translateY(-1px); }
+    .nav-yt svg { width: 16px; height: 16px; }
+
+    /* ══════════════════════════════
+       HERO
+    ══════════════════════════════ */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      padding-top: 68px;
+    }
+
+    /* Dot network canvas */
+    #dotCanvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    /* Sparkline SVG background */
+    .hero-sparkline {
+      position: absolute; bottom: 120px; left: 0; right: 0;
+      opacity: 0.22; pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative; z-index: 2;
+      text-align: center;
+      animation: fadeUp 0.9s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+    }
+    .hero-label::before, .hero-label::after {
+      content: '';
+      display: block; width: 40px; height: 1px;
+      background: var(--amber); opacity: 0.5;
+    }
+
+    .hero-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: clamp(52px, 9vw, 130px);
+      line-height: 1;
+      letter-spacing: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      background: linear-gradient(135deg, #e8820a, #c85f00, #9e4200);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-title .six {
+      font-size: clamp(90px, 16vw, 220px);
+      line-height: 0.85;
+      display: inline-block;
+      vertical-align: middle;
+      background: linear-gradient(135deg, #e8820a, #c85f00, #9e4200);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-tagline {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 400;
+      font-size: clamp(16px, 2vw, 22px);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--grey-mid);
+      margin-top: 16px;
+      margin-bottom: 40px;
+    }
+
+    .hero-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 16px 36px;
+      background: var(--amber);
+      color: white;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(200,95,0,0.25);
+    }
+    .hero-cta:hover {
+      background: var(--amber-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(200,95,0,0.35);
+    }
+    .hero-cta svg { width: 20px; height: 20px; }
+
+    /* Divider lines hero */
+    .hero-dividers {
+      position: absolute; inset: 0; pointer-events: none;
+    }
+
+    /* Scroll indicator */
+    .scroll-hint {
+      position: absolute; bottom: 36px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--grey-mid);
+      animation: bounce 2s infinite;
+    }
+    .scroll-hint::after {
+      content: '';
+      width: 1px; height: 32px;
+      background: linear-gradient(to bottom, var(--amber), transparent);
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ══════════════════════════════
+       SECTION COMMONS
+    ══════════════════════════════ */
+    section { padding: 90px 48px; }
+
+    .section-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 48px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--grey-light);
+    }
+    .section-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; font-size: 12px;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: var(--amber); margin-bottom: 8px;
+    }
+    .section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: clamp(32px, 4vw, 52px);
+      line-height: 1; color: var(--navy);
+    }
+    .section-link {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 13px;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--amber); text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+      transition: gap 0.2s;
+    }
+    .section-link:hover { gap: 10px; }
+    .section-link::after { content: '→'; }
+
+    /* ══════════════════════════════
+       STAT OF THE WEEK
+    ══════════════════════════════ */
+    .stat-week {
+      background: linear-gradient(135deg, var(--amber) 0%, #9e4200 100%);
+      padding: 60px 48px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-week::before {
+      content: '6';
+      position: absolute; right: -20px; top: -60px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 400px; line-height: 1;
+      color: rgba(255,255,255,0.05);
+      pointer-events: none;
+    }
+    .stat-week-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; font-size: 12px;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 12px;
+    }
+    .stat-week-number {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: clamp(60px, 8vw, 110px);
+      line-height: 1; color: white;
+    }
+    .stat-week-desc {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600; font-size: 22px;
+      color: rgba(255,255,255,0.85);
+      margin-top: 8px;
+    }
+    .stat-week-detail {
+      font-size: 15px; line-height: 1.7;
+      color: rgba(255,255,255,0.70);
+    }
+    .stat-week-sport {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(255,255,255,0.15);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+      color: white; border-radius: 2px;
+      margin-bottom: 16px;
+    }
+
+    /* ══════════════════════════════
+       VIDEOS
+    ══════════════════════════════ */
+    .videos-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .video-card {
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--grey-light);
+      background: var(--white);
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+      text-decoration: none; color: inherit;
+      display: block;
+    }
+    .video-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(200,95,0,0.15);
+      border-color: var(--amber);
+    }
+    .video-thumb {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: var(--grey-light);
+      overflow: hidden;
+    }
+    .video-thumb-inner {
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #eef1f5, #dde3ed);
+      display: flex; align-items: center; justify-content: center;
+    }
+    /* Fake thumbnail with bar chart visualization */
+    .thumb-viz {
+      display: flex; align-items: flex-end; gap: 5px;
+      padding: 20px;
+    }
+    .thumb-bar {
+      background: linear-gradient(to top, var(--amber), var(--amber-light));
+      border-radius: 2px 2px 0 0;
+      opacity: 0.5;
+      flex: 1;
+    }
+    .play-btn {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .play-circle {
+      width: 48px; height: 48px;
+      background: rgba(200,95,0,0.9);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .video-card:hover .play-circle {
+      transform: scale(1.1);
+      background: var(--amber);
+    }
+    .play-circle svg { width: 18px; height: 18px; fill: white; margin-left: 3px; }
+
+    .video-sport-tag {
+      position: absolute; top: 12px; left: 12px;
+      padding: 3px 10px;
+      background: var(--amber);
+      color: white;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; border-radius: 2px;
+    }
+    .video-info { padding: 20px; }
+    .video-meta {
+      display: flex; gap: 12px; align-items: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--grey-mid); margin-bottom: 8px;
+    }
+    .video-meta .dot { width: 3px; height: 3px; background: var(--grey-mid); border-radius: 50%; }
+    .video-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 18px;
+      color: var(--navy); line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .video-desc {
+      font-size: 13px; color: var(--grey-dark);
+      line-height: 1.6; display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    /* ══════════════════════════════
+       BLOG
+    ══════════════════════════════ */
+    .blog-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 28px;
+    }
+
+    .blog-card {
+      border: 1px solid var(--grey-light);
+      border-radius: 3px;
+      padding: 32px;
+      background: var(--white);
+      text-decoration: none; color: inherit;
+      display: block;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .blog-card::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--amber);
+      transform: scaleY(0); transform-origin: bottom;
+      transition: transform 0.25s ease;
+    }
+    .blog-card:hover { border-color: var(--amber); box-shadow: 0 8px 30px rgba(200,95,0,0.10); transform: translateY(-3px); }
+    .blog-card:hover::before { transform: scaleY(1); }
+
+    .blog-card.featured { grid-row: span 2; padding: 40px; }
+    .blog-card.featured .blog-title { font-size: 28px; }
+
+    .blog-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; border-radius: 2px;
+      margin-bottom: 14px;
+    }
+    .blog-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 22px;
+      color: var(--navy); line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .blog-excerpt {
+      font-size: 14px; line-height: 1.7;
+      color: var(--grey-dark); margin-bottom: 20px;
+    }
+    .blog-meta {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--grey-mid);
+      display: flex; gap: 10px; align-items: center;
+    }
+    .blog-read-more {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 13px;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--amber); margin-top: 20px;
+      display: block;
+    }
+
+    /* ══════════════════════════════
+       DATA VISUALIZATION SECTION
+    ══════════════════════════════ */
+    .dataviz { background: var(--off-white); }
+    .dataviz-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .dataviz-card {
+      background: white;
+      border: 1px solid var(--grey-light);
+      border-radius: 3px;
+      padding: 28px;
+    }
+    .dataviz-card-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 14px;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--grey-dark); margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .dataviz-card-title span {
+      font-size: 11px; color: var(--grey-mid);
+    }
+
+    /* Bar chart viz */
+    .bar-chart {
+      display: flex; align-items: flex-end; gap: 8px;
+      height: 100px;
+    }
+    .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .bar {
+      width: 100%; border-radius: 2px 2px 0 0;
+      background: linear-gradient(to top, var(--amber), var(--amber-light));
+      transition: opacity 0.2s;
+    }
+    .bar:hover { opacity: 0.75; }
+    .bar-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; letter-spacing: 0.5px;
+      color: var(--grey-mid); text-align: center;
+    }
+
+    /* Sparkline viz */
+    .sparkline-wrap { height: 100px; }
+    .sparkline-wrap svg { width: 100%; height: 100%; }
+
+    /* Stat numbers */
+    .stat-row {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .stat-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--grey-light);
+    }
+    .stat-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .stat-item-label {
+      font-size: 13px; color: var(--grey-dark);
+    }
+    .stat-item-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 24px;
+      color: var(--amber);
+    }
+    .stat-item-bar {
+      width: 100%; height: 3px;
+      background: var(--grey-light);
+      margin-top: 6px; border-radius: 2px; overflow: hidden;
+    }
+    .stat-item-bar-fill {
+      height: 100%;
+      background: linear-gradient(to right, var(--amber), var(--amber-light));
+      border-radius: 2px;
+    }
+
+    /* ══════════════════════════════
+       ABOUT
+    ══════════════════════════════ */
+    .about { background: var(--navy); color: white; }
+    .about .section-title { color: white; }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+    }
+    .about-text {
+      font-size: 16px; line-height: 1.8;
+      color: rgba(255,255,255,0.70);
+    }
+    .about-text p + p { margin-top: 16px; }
+    .about-text strong { color: var(--amber-light); font-weight: 600; }
+
+    .about-stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    }
+    .about-stat {
+      border: 1px solid rgba(200,95,0,0.3);
+      padding: 24px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.03);
+    }
+    .about-stat-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 52px; line-height: 1;
+      color: var(--amber);
+    }
+    .about-stat-label {
+      font-size: 13px; color: rgba(255,255,255,0.5);
+      margin-top: 6px; line-height: 1.4;
+    }
+
+    /* ══════════════════════════════
+       NEWSLETTER
+    ══════════════════════════════ */
+    .newsletter {
+      background: var(--amber-pale);
+      padding: 80px 48px;
+      text-align: center;
+    }
+    .newsletter .section-title { color: var(--navy); margin-bottom: 12px; }
+    .newsletter-sub {
+      font-size: 16px; color: var(--grey-dark);
+      max-width: 500px; margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+    .newsletter-form {
+      display: flex; gap: 0;
+      max-width: 480px; margin: 0 auto;
+    }
+    .newsletter-input {
+      flex: 1;
+      padding: 14px 20px;
+      border: 2px solid rgba(200,95,0,0.25);
+      border-right: none;
+      background: white;
+      font-family: 'Barlow', sans-serif;
+      font-size: 15px; color: var(--text);
+      border-radius: 2px 0 0 2px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .newsletter-input:focus { border-color: var(--amber); }
+    .newsletter-input::placeholder { color: var(--grey-mid); }
+    .newsletter-btn {
+      padding: 14px 28px;
+      background: var(--amber);
+      color: white;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 14px;
+      letter-spacing: 2px; text-transform: uppercase;
+      border: none; cursor: pointer;
+      border-radius: 0 2px 2px 0;
+      transition: background 0.2s;
+    }
+    .newsletter-btn:hover { background: var(--amber-light); }
+
+    /* ══════════════════════════════
+       FOOTER
+    ══════════════════════════════ */
+    footer {
+      background: var(--navy);
+      padding: 48px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 40px; align-items: start;
+      border-top: 1px solid rgba(200,95,0,0.2);
+    }
+    .footer-logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900; font-size: 28px;
+      color: var(--amber); margin-bottom: 10px;
+    }
+    .footer-desc {
+      font-size: 13px; color: rgba(255,255,255,0.40);
+      line-height: 1.6; max-width: 340px;
+    }
+    .footer-copy {
+      font-size: 12px; color: rgba(255,255,255,0.25);
+      margin-top: 24px;
+    }
+    .footer-links {
+      display: flex; flex-direction: column; gap: 12px; align-items: flex-end;
+    }
+    .footer-social {
+      display: flex; gap: 16px;
+    }
+    .footer-social a {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(200,95,0,0.3);
+      border-radius: 2px; color: var(--amber);
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .footer-social a:hover { background: rgba(200,95,0,0.15); border-color: var(--amber); }
+    .footer-social svg { width: 16px; height: 16px; fill: currentColor; }
+    .footer-nav {
+      display: flex; gap: 24px; flex-wrap: wrap; justify-content: flex-end;
+    }
+    .footer-nav a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+      color: rgba(255,255,255,0.40); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-nav a:hover { color: var(--amber); }
+
+    /* ══════════════════════════════
+       DECORATIVE TICKER
+    ══════════════════════════════ */
+    .ticker {
+      background: var(--amber);
+      padding: 10px 0;
+      overflow: hidden; white-space: nowrap;
+    }
+    .ticker-inner {
+      display: inline-flex; gap: 0;
+      animation: ticker 30s linear infinite;
+    }
+    .ticker-item {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 13px;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: rgba(255,255,255,0.85);
+      padding: 0 32px;
+    }
+    .ticker-sep {
+      color: rgba(255,255,255,0.35);
+      padding: 0 4px;
+    }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ══════════════════════════════
+       RESPONSIVE (basic)
+    ══════════════════════════════ */
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      section { padding: 60px 24px; }
+      .videos-grid, .dataviz-grid { grid-template-columns: 1fr; }
+      .blog-grid { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; gap: 40px; }
+      .stat-week { grid-template-columns: 1fr; }
+      footer { grid-template-columns: 1fr; }
+      .footer-links { align-items: flex-start; }
+      .footer-nav { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVIGATION ══ -->
+<nav>
+  <a href="#" class="nav-logo">BE<span>6</span>PLAYER</a>
+  <ul class="nav-links">
+    <li><a href="#videa" data-i18n="nav.videos">Videos</a></li>
+    <li><a href="#blog" data-i18n="nav.blog">Blog</a></li>
+    <li><a href="#statistiky" data-i18n="nav.stats">Statistics</a></li>
+    <li><a href="#o-projektu" data-i18n="nav.about">About</a></li>
+  </ul>
+  <div style="display:flex; align-items:center; gap:14px;">
+    <!-- Language switcher -->
+    <div style="display:flex; align-items:center; border:1px solid rgba(200,95,0,0.25); border-radius:2px; overflow:hidden;">
+      <button id="lang-en" onclick="setLanguage('en')" style="
+        padding:6px 12px; background:var(--amber); color:white; border:none; cursor:pointer;
+        font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; letter-spacing:1.5px;
+        transition:background 0.2s;">EN</button>
+      <button id="lang-cs" onclick="setLanguage('cs')" style="
+        padding:6px 12px; background:none; color:var(--amber); border:none; cursor:pointer;
+        font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; letter-spacing:1.5px;
+        transition:background 0.2s;">CS</button>
+    </div>
+    <a href="https://www.youtube.com/@be6player" target="_blank" class="nav-yt">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.8 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+      YouTube
+    </a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <canvas id="dotCanvas"></canvas>
+
+  <!-- Grey sparkline across hero -->
+  <svg class="hero-sparkline" viewBox="0 0 1400 120" preserveAspectRatio="none">
+    <polyline points="0,80 120,60 240,70 380,40 500,55 640,30 780,45 920,20 1060,35 1200,15 1400,28"
+      fill="none" stroke="#9aacbe" stroke-width="1.5" stroke-linejoin="round" opacity="0.6"/>
+    <circle cx="380" cy="40" r="4" fill="#9aacbe" opacity="0.5"/>
+    <circle cx="640" cy="30" r="4" fill="#9aacbe" opacity="0.5"/>
+    <circle cx="920" cy="20" r="5" fill="#9aacbe" opacity="0.5"/>
+    <circle cx="1200" cy="15" r="4" fill="#9aacbe" opacity="0.5"/>
+  </svg>
+
+  <div class="hero-content">
+    <div class="hero-label" data-i18n="hero.label">Sports Analytics</div>
+    <div class="hero-title">
+      BE<span class="six">6</span>PLAYER
+    </div>
+    <div class="hero-tagline" data-i18n="hero.tagline">Discover the Numbers Behind the Games</div>
+    <a href="https://www.youtube.com/@be6player" target="_blank" class="hero-cta">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.8 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+      <span data-i18n="hero.cta">Watch on YouTube</span>
+    </a>
+  </div>
+  <div class="scroll-hint" data-i18n="hero.scroll">Scroll</div>
+</section>
+
+<!-- ══ TICKER ══ -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item">Sports Analytics</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">Data-Driven Insights</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">Numbers Behind the Games</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">Trends & Statistics</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">Player Performance</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">League Analysis</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">BE6PLAYER</span><span class="ticker-sep">✦</span>
+    <!-- duplicate for seamless loop -->
+    <span class="ticker-item">Sports Analytics</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">Data-Driven Insights</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">Numbers Behind the Games</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">Trends & Statistics</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">Player Performance</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">League Analysis</span><span class="ticker-sep">✦</span>
+    <span class="ticker-item">BE6PLAYER</span><span class="ticker-sep">✦</span>
+  </div>
+</div>
+
+<!-- ══ STAT OF THE WEEK ══ -->
+<div class="stat-week" id="stat-week-block">
+  <div>
+    <div class="stat-week-label" data-i18n="week.label">⬡ Number of the Week</div>
+    <div class="stat-week-number" id="sw-number">73.4%</div>
+    <div class="stat-week-desc" id="sw-desc">Úspěšnost přihrávek vedoucích k gólu</div>
+  </div>
+  <div>
+    <span class="stat-week-sport" id="sw-sport">NHL · Sezóna 2024/25</span>
+    <p class="stat-week-detail" id="sw-detail">
+      Týmy, které dominují v přihrávkách vedoucích přímo ke střele na branku, vyhrávají o 31 % více zápasů než průměr ligy.
+    </p>
+  </div>
+</div>
+
+<!-- ══ VIDEOS ══ -->
+<section id="videa">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">YouTube</div>
+      <div class="section-title" data-i18n="section.videos">Videos</div>
+    </div>
+    <a href="https://www.youtube.com/@be6player" target="_blank" class="section-link" data-i18n="section.allVideos">All videos</a>
+  </div>
+
+  <!-- Videos grid (dynamic) -->
+  <div id="video-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center;">
+    <div style="position:relative; width:90%; max-width:900px;">
+      <button onclick="closeModal()" style="
+        position:absolute; top:-44px; right:0;
+        background:none; border:none; color:white; cursor:pointer;
+        font-family:'Barlow Condensed',sans-serif; font-size:16px; letter-spacing:2px;
+      ">✕ ZAVŘÍT</button>
+      <div style="position:relative; padding-bottom:56.25%; height:0; background:#000; border-radius:2px; overflow:hidden;">
+        <iframe id="modal-iframe" src="" frameborder="0" allowfullscreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Videos grid (dynamic) -->
+  <div id="videos-grid" class="videos-grid">
+    <!-- Populated by JS -->
+  </div>
+
+  <div id="videos-empty" style="
+    text-align:center; padding:60px 24px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:18px; letter-spacing:1px; color:var(--grey-mid);
+    display:none;
+  ">
+    Zatím žádná videa. Vložte první YouTube odkaz výše.
+  </div>
+</section>
+
+<style>
+  /* Video modal click-outside */
+  #video-modal { cursor: pointer; }
+  #video-modal > div { cursor: default; }
+
+  /* Delete button on card */
+  .video-delete {
+    position:absolute; top:10px; right:10px;
+    width:28px; height:28px;
+    background:rgba(0,0,0,0.55); border:none; border-radius:50%;
+    color:white; font-size:14px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity 0.2s;
+    z-index:5;
+  }
+  .video-card:hover .video-delete { opacity:1; }
+  .video-delete { opacity: 1 !important; }
+</style>
+
+<script>
+  // ── YouTube video ID extractor ──
+  function extractYouTubeId(url) {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+      /^([a-zA-Z0-9_-]{11})$/
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) return m[1];
+    }
+    return null;
+  }
+
+  // ── Storage ──
+  function loadVideos() {
+    try { return JSON.parse(localStorage.getItem('be6player_videos') || '[]'); }
+    catch { return []; }
+  }
+  function saveVideos(videos) {
+    localStorage.setItem('be6player_videos', JSON.stringify(videos));
+  }
+
+  // ── Format date ──
+  function formatDate(iso) {
+    return new Date(iso).toLocaleDateString('cs-CZ', { day:'numeric', month:'long', year:'numeric' });
+  }
+
+  // ── Render videos ──
+  function renderVideos() {
+    const videos = loadVideos().slice().reverse(); // newest first
+    const grid = document.getElementById('videos-grid');
+    const empty = document.getElementById('videos-empty');
+    grid.innerHTML = '';
+    if (videos.length === 0) {
+      empty.style.display = 'block';
+      grid.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    grid.style.display = 'grid';
+
+    videos.forEach((v, i) => {
+      const thumb = `https://img.youtube.com/vi/${v.id}/mqdefault.jpg`;
+      const card = document.createElement('div');
+      card.className = 'video-card';
+      card.innerHTML = `
+        <div class="video-thumb" style="position:relative; aspect-ratio:16/9; overflow:hidden; background:#111;">
+          <img src="${thumb}" alt="${v.title || 'Video'}"
+            style="width:100%; height:100%; object-fit:cover; display:block;"
+            onerror="this.style.display='none'"/>
+          <div class="play-btn">
+            <div class="play-circle"><svg viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+        </div>
+        <div class="video-info">
+          <div class="video-meta">
+            <span>${formatDate(v.added)}</span>
+            ${v.desc ? `<span class="dot"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${v.desc}</span>` : ''}
+          </div>
+          <div class="video-title">${v.title || 'YouTube video'}</div>
+          <div class="video-desc" style="color:var(--amber); font-family:'Barlow Condensed',sans-serif; font-size:13px; letter-spacing:1px; margin-top:6px;">
+            ${typeof t === 'function' ? t('video.watch') : '▶ Watch video'}
+          </div>
+        </div>
+      `;
+      card.addEventListener('click', () => openModal(v.id));
+      grid.appendChild(card);
+    });
+  }
+
+  // ── Add video ──
+  async function addVideo() {
+    const urlInput = document.getElementById('yt-url-input');
+    const descInput = document.getElementById('yt-desc-input');
+    const errEl = document.getElementById('yt-error');
+    const url = urlInput.value.trim();
+    const desc = descInput.value.trim();
+    errEl.style.display = 'none';
+
+    const id = extractYouTubeId(url);
+    if (!id) { errEl.style.display = 'block'; return; }
+
+    // Fetch video title via oEmbed
+    let title = '';
+    try {
+      const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`);
+      if (res.ok) { const data = await res.json(); title = data.title || ''; }
+    } catch {}
+
+    const videos = loadVideos();
+    // Avoid duplicates
+    if (videos.find(v => v.id === id)) {
+      errEl.textContent = '⚠ Toto video už bylo přidáno.';
+      errEl.style.display = 'block';
+      return;
+    }
+    videos.push({ id, title, desc, added: new Date().toISOString() });
+    saveVideos(videos);
+    urlInput.value = '';
+    descInput.value = '';
+    renderVideos();
+  }
+
+  // ── Delete video ──
+  function deleteVideo(e, videoId) {
+    e.stopPropagation();
+    const isCs = typeof currentLang !== 'undefined' && currentLang === 'cs';
+    if (!confirm(isCs ? 'Odstranit toto video?' : 'Remove this video?')) return;
+    saveVideos(loadVideos().filter(v => v.id !== videoId));
+    renderVideos();
+  }
+
+  // ── Modal ──
+  function openModal(id) {
+    document.getElementById('modal-iframe').src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+    document.getElementById('video-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    document.getElementById('video-modal').style.display = 'none';
+    document.getElementById('modal-iframe').src = '';
+    document.body.style.overflow = '';
+  }
+  // Click outside modal to close
+  document.getElementById('video-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  // Enter key in input
+  document.getElementById('yt-url-input').addEventListener('keydown', e => { if (e.key === 'Enter') addVideo(); });
+
+  // ── Init ──
+  renderVideos();
+</script>
+
+<!-- ══ BLOG ══ -->
+<section id="blog" style="background: var(--off-white);">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow" data-i18n="blog.eyebrow">Analysis & Commentary</div>
+      <div class="section-title">Blog</div>
+    </div>
+  </div>
+
+  <!-- Blog list -->
+  <div id="blog-list" style="display:flex; flex-direction:column; gap:20px;"></div>
+  <div id="blog-empty" style="
+    text-align:center; padding:60px 24px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:18px; letter-spacing:1px; color:var(--grey-mid);
+    display:none;" data-i18n="blog.empty">No articles yet.</div>
+
+  <!-- ── BLOG ARTICLE READER MODAL ── -->
+  <div id="blog-reader-modal" style="
+    display:none; position:fixed; inset:0;
+    background:rgba(10,15,30,0.82); z-index:2000;
+    align-items:flex-start; justify-content:center;
+    overflow-y:auto; padding:40px 16px; cursor:pointer;
+  ">
+    <div style="
+      background:white; width:100%; max-width:760px;
+      border-radius:4px; overflow:hidden;
+      box-shadow:0 24px 80px rgba(0,0,0,0.4); cursor:default;
+    " onclick="event.stopPropagation()">
+      <div style="background:var(--navy); padding:20px 28px; display:flex; align-items:center; justify-content:space-between;">
+        <span id="reader-tag-header" style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--amber);"></span>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <button id="reader-edit-btn" onclick="editBlogPost()" style="background:none; border:1px solid rgba(200,95,0,0.4); color:var(--amber); font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; padding:6px 14px; border-radius:2px; cursor:pointer;">✎ Upravit</button>
+          <button id="reader-delete-btn" onclick="deleteBlogPost()" style="background:none; border:1px solid rgba(192,57,43,0.4); color:#c0392b; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; padding:6px 14px; border-radius:2px; cursor:pointer;">✕ Smazat</button>
+          <button onclick="closeBlogReader()" style="background:none; border:none; color:rgba(255,255,255,0.5); font-size:22px; cursor:pointer; line-height:1;">✕</button>
+        </div>
+      </div>
+      <div style="padding:36px 40px;">
+        <div id="reader-date" style="font-family:'Barlow Condensed',sans-serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-mid); margin-bottom:16px;"></div>
+        <h1 id="reader-title" style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:36px; color:var(--navy); line-height:1.15; margin-bottom:28px;"></h1>
+        <div id="reader-content" style="font-family:'Barlow',sans-serif; font-size:16px; line-height:1.85; color:var(--text);"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tb-btn {
+    padding:5px 9px;
+    background:white; border:1px solid var(--grey-light); border-radius:2px;
+    font-family:'Barlow Condensed',sans-serif; font-size:13px;
+    color:var(--text); cursor:pointer; transition:background 0.15s, border-color 0.15s;
+    line-height:1;
+  }
+  .tb-btn:hover { background:var(--amber-pale); border-color:var(--amber); color:var(--amber); }
+
+  #blog-editor-area:empty::before {
+    content: attr(data-placeholder);
+    color: var(--grey-mid);
+    pointer-events: none;
+  }
+
+  .blog-post-card {
+    background:white;
+    border:1px solid var(--grey-light);
+    border-left:4px solid transparent;
+    border-radius:3px;
+    padding:28px 32px;
+    cursor:pointer;
+    transition:border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    position:relative;
+  }
+  .blog-post-card:hover {
+    border-left-color:var(--amber);
+    box-shadow:0 6px 24px rgba(200,95,0,0.10);
+    transform:translateY(-2px);
+  }
+  .blog-post-card .card-actions {
+    position:absolute; top:20px; right:20px;
+    display:flex; gap:8px; opacity:1;
+  }
+  .blog-post-card:hover .card-actions { opacity:1; }
+  .card-action-btn {
+    padding:5px 12px;
+    font-family:'Barlow Condensed',sans-serif; font-size:11px;
+    letter-spacing:1.5px; text-transform:uppercase;
+    border-radius:2px; cursor:pointer; border:1px solid;
+  }
+</style>
+
+<script>
+  // ── Blog storage ──
+  function loadPosts() {
+    try { return JSON.parse(localStorage.getItem('be6player_posts') || '[]'); }
+    catch { return []; }
+  }
+  function savePosts(posts) {
+    localStorage.setItem('be6player_posts', JSON.stringify(posts));
+  }
+
+  // ── Editor state ──
+  let currentReadingId = null;
+
+  function blogExec(cmd, val) {
+    document.getElementById('blog-editor-area').focus();
+    document.execCommand(cmd, false, val || null);
+  }
+
+  // ── Open editor via admin panel ──
+  function openBlogEditor(postId) {
+    document.getElementById('blog-edit-id').value = postId || '';
+    const area   = document.getElementById('blog-editor-area');
+    const areaCs = document.getElementById('blog-editor-cs-area');
+    if (postId) {
+      const post = loadPosts().find(p => p.id === postId);
+      if (post) {
+        document.getElementById('blog-title-input').value    = post.title;
+        document.getElementById('blog-tag-input').value      = post.tag || '';
+        document.getElementById('blog-title-cs-input').value = post.titleCs || '';
+        area.innerHTML   = post.content;
+        areaCs.innerHTML = post.contentCs || '';
+      }
+    } else {
+      document.getElementById('blog-title-input').value    = '';
+      document.getElementById('blog-tag-input').value      = '';
+      document.getElementById('blog-title-cs-input').value = '';
+      area.innerHTML   = '';
+      areaCs.innerHTML = '';
+    }
+    openAdminPanel();
+    switchAdminTab('blog');
+  }
+  function closeBlogEditor() { closeAdminPanel(); }
+
+  // ── Save post ──
+  function saveBlogPost() {
+    const title     = document.getElementById('blog-title-input').value.trim();
+    const tag       = document.getElementById('blog-tag-input').value.trim();
+    const content   = document.getElementById('blog-editor-area').innerHTML.trim();
+    const titleCs   = document.getElementById('blog-title-cs-input').value.trim();
+    const contentCs = document.getElementById('blog-editor-cs-area').innerHTML.trim();
+    const editId    = document.getElementById('blog-edit-id').value;
+
+    if (!title) { alert('Please enter the article title.'); return; }
+    if (!content || content === '<br>') { alert('Article content cannot be empty.'); return; }
+
+    const posts = loadPosts();
+    if (editId) {
+      const idx = posts.findIndex(p => p.id === editId);
+      if (idx !== -1) { posts[idx] = { ...posts[idx], title, tag, content, titleCs, contentCs, edited: new Date().toISOString() }; }
+    } else {
+      posts.push({ id: Date.now().toString(), title, tag, content, titleCs, contentCs, added: new Date().toISOString() });
+    }
+    savePosts(posts);
+    document.getElementById('blog-edit-id').value = '';
+    closeAdminPanel();
+    renderBlog();
+    if (editId && currentReadingId === editId) openBlogReader(editId);
+  }
+
+  // ── Render blog list ──
+  function renderBlog() {
+    const posts = loadPosts().slice().reverse(); // newest first
+    const list  = document.getElementById('blog-list');
+    const empty = document.getElementById('blog-empty');
+    list.innerHTML = '';
+    if (posts.length === 0) { empty.style.display='block'; list.style.display='none'; return; }
+    empty.style.display = 'none'; list.style.display = 'flex';
+
+    posts.forEach(post => {
+      const isCs    = currentLang === 'cs';
+      const dispTitle   = (isCs && post.titleCs)   ? post.titleCs   : post.title;
+      const dispContent = (isCs && post.contentCs) ? post.contentCs : post.content;
+      const div = document.createElement('div');
+      div.className = 'blog-post-card';
+      const tmp = document.createElement('div');
+      tmp.innerHTML = dispContent;
+      const excerpt = (tmp.textContent || '').slice(0, 200).trim() + '…';
+      const readMin = Math.max(1, Math.round((tmp.textContent || '').split(' ').length / 200));
+      const editLabel = isCs ? 'upraveno' : 'edited';
+      const readLabel = isCs ? 'min čtení' : 'min read';
+      const editBtn   = isCs ? '✎ Upravit' : '✎ Edit';
+      const delBtn    = isCs ? '✕ Smazat'  : '✕ Delete';
+      const readBtn   = isCs ? 'Číst →' : 'Read →';
+
+      div.innerHTML = `
+        ${post.tag ? `<span class="blog-tag">${post.tag}</span>` : ''}
+        <div class="blog-title" style="margin-top:${post.tag?'10px':'0'}">${dispTitle}</div>
+        <div class="blog-excerpt" style="margin-top:10px;">${excerpt}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;">
+          <div class="blog-meta">
+            <span>${formatDateBlog(post.added, isCs)}</span>
+            <span>·</span>
+            <span>${readMin} ${readLabel}</span>
+            ${post.edited ? `<span>·</span><span style="color:var(--amber)">${editLabel}</span>` : ''}
+          </div>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--amber);">${readBtn}</span>
+        </div>
+      `;
+      div.addEventListener('click', () => openBlogReader(post.id));
+      list.appendChild(div);
+    });
+  }
+
+  function formatDateBlog(iso, cs) {
+    const locale = cs ? 'cs-CZ' : 'en-GB';
+    return new Date(iso).toLocaleDateString(locale, { day:'numeric', month:'long', year:'numeric' });
+  }
+
+  // ── Reader modal ──
+  function openBlogReader(postId) {
+    const post = loadPosts().find(p => p.id === postId);
+    if (!post) return;
+    currentReadingId = postId;
+    const isCs = currentLang === 'cs';
+    const dispTitle   = (isCs && post.titleCs)   ? post.titleCs   : post.title;
+    const dispContent = (isCs && post.contentCs) ? post.contentCs : post.content;
+    document.getElementById('reader-tag-header').textContent = post.tag || (isCs ? 'Článek' : 'Article');
+    document.getElementById('reader-title').textContent = dispTitle;
+    document.getElementById('reader-date').textContent = formatDateBlog(post.added, isCs) + (post.edited ? (isCs ? ' · upraveno' : ' · edited') : '');
+    document.getElementById('reader-content').innerHTML = dispContent;
+    document.getElementById('reader-edit-btn').textContent   = isCs ? '✎ Upravit' : '✎ Edit';
+    document.getElementById('reader-delete-btn').textContent = isCs ? '✕ Smazat'  : '✕ Delete';
+    document.getElementById('reader-edit-btn').onclick = () => { closeBlogReader(); openBlogEditor(postId); };
+    document.getElementById('reader-delete-btn').onclick = () => deleteBlogPostById(postId);
+    const modal = document.getElementById('blog-reader-modal');
+    modal.style.display = 'flex';
+    modal.scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeBlogReader() {
+    document.getElementById('blog-reader-modal').style.display = 'none';
+    document.body.style.overflow = '';
+    currentReadingId = null;
+  }
+  document.getElementById('blog-reader-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeBlogReader();
+  });
+
+  // ── Delete ──
+  function deleteBlogPostById(postId) {
+    const isCs = currentLang === 'cs';
+    if (!confirm(isCs ? 'Opravdu smazat tento článek?' : 'Delete this article?')) return;
+    const posts = loadPosts().filter(p => p.id !== postId);
+    savePosts(posts);
+    closeBlogReader();
+    renderBlog();
+  }
+
+  // ── Init ──
+  renderBlog();
+</script>
+
+<!-- ══ STATISTIKY ══ -->
+<section id="statistiky" class="dataviz">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow" data-i18n="stats.eyebrow">Analysis & Data</div>
+      <div class="section-title" data-i18n="stats.title">Statistics & Visualizations</div>
+    </div>
+  </div>
+
+  <!-- Stat posts list -->
+  <div id="stat-list" style="display:flex; flex-direction:column; gap:20px;"></div>
+  <div id="stat-empty" style="
+    text-align:center; padding:60px 24px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:18px; letter-spacing:1px; color:var(--grey-mid);
+    display:none;" data-i18n="stats.empty">No statistics yet.</div>
+
+  <!-- ── STAT READER MODAL ── -->
+  <div id="stat-reader-modal" style="
+    display:none; position:fixed; inset:0;
+    background:rgba(10,15,30,0.82); z-index:2000;
+    align-items:flex-start; justify-content:center;
+    overflow-y:auto; padding:40px 16px; cursor:pointer;
+  ">
+    <div style="
+      background:white; width:100%; max-width:820px;
+      border-radius:4px; overflow:hidden;
+      box-shadow:0 24px 80px rgba(0,0,0,0.4); cursor:default;
+    " onclick="event.stopPropagation()">
+      <div style="background:var(--navy); padding:20px 28px; display:flex; align-items:center; justify-content:space-between;">
+        <span id="stat-reader-tag" style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--amber);"></span>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <button id="stat-reader-edit-btn" style="background:none; border:1px solid rgba(200,95,0,0.4); color:var(--amber); font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; padding:6px 14px; border-radius:2px; cursor:pointer;">✎ Upravit</button>
+          <button id="stat-reader-delete-btn" style="background:none; border:1px solid rgba(192,57,43,0.4); color:#c0392b; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; padding:6px 14px; border-radius:2px; cursor:pointer;">✕ Smazat</button>
+          <button onclick="closeStatReader()" style="background:none; border:none; color:rgba(255,255,255,0.5); font-size:22px; cursor:pointer; line-height:1;">✕</button>
+        </div>
+      </div>
+      <div style="padding:36px 40px;">
+        <div id="stat-reader-date" style="font-family:'Barlow Condensed',sans-serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-mid); margin-bottom:16px;"></div>
+        <h1 id="stat-reader-title" style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:36px; color:var(--navy); line-height:1.15; margin-bottom:28px;"></h1>
+        <div id="stat-reader-content" style="font-family:'Barlow',sans-serif; font-size:16px; line-height:1.85; color:var(--text);"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #stat-editor-area:empty::before {
+    content: attr(data-placeholder);
+    color: var(--grey-mid);
+    pointer-events: none;
+  }
+  #stat-editor-area img {
+    max-width:100%; height:auto; display:block;
+    margin:12px 0; border-radius:2px;
+    cursor:pointer; outline:2px solid transparent;
+    transition:outline-color 0.2s;
+  }
+  #stat-editor-area img:hover { outline-color: var(--amber); }
+  #stat-reader-content img { max-width:100%; height:auto; display:block; margin:16px 0; border-radius:2px; }
+
+  .stat-post-card {
+    background:white;
+    border:1px solid var(--grey-light);
+    border-left:4px solid transparent;
+    border-radius:3px;
+    padding:28px 32px;
+    cursor:pointer;
+    transition:border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    position:relative;
+  }
+  .stat-post-card:hover {
+    border-left-color:var(--amber);
+    box-shadow:0 6px 24px rgba(200,95,0,0.10);
+    transform:translateY(-2px);
+  }
+  .stat-post-card .card-actions {
+    position:absolute; top:20px; right:20px;
+    display:flex; gap:8px; opacity:1;
+  }
+  .stat-post-card:hover .card-actions { opacity:1; }
+  .stat-preview-img {
+    width:100%; max-height:180px; object-fit:cover;
+    border-radius:2px; margin-top:14px;
+    display:block;
+  }
+</style>
+
+<script>
+  // ── Stat storage ──
+  function loadStats() {
+    try { return JSON.parse(localStorage.getItem('be6player_stats') || '[]'); }
+    catch { return []; }
+  }
+  function saveStats(stats) {
+    localStorage.setItem('be6player_stats', JSON.stringify(stats));
+  }
+
+  let currentStatReadingId = null;
+
+  function statExec(cmd, val) {
+    document.getElementById('stat-editor-area').focus();
+    document.execCommand(cmd, false, val || null);
+  }
+
+  // ── Insert image from file ──
+  function insertStatImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const area = document.getElementById('stat-editor-area');
+      area.focus();
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.width = '100%';
+      img.style.maxWidth = '100%';
+      // Insert at cursor or at end
+      const sel = window.getSelection();
+      if (sel.rangeCount && area.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0);
+        range.insertNode(img);
+        range.collapse(false);
+      } else {
+        area.appendChild(img);
+      }
+    };
+    reader.readAsDataURL(file);
+    event.target.value = ''; // reset so same file can be inserted again
+  }
+
+  // ── Insert image from URL ──
+  function insertStatImageUrl() {
+    const url = prompt('Zadejte URL obrázku:');
+    if (!url) return;
+    const area = document.getElementById('stat-editor-area');
+    area.focus();
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.width = '100%';
+    const sel = window.getSelection();
+    if (sel.rangeCount && area.contains(sel.anchorNode)) {
+      const range = sel.getRangeAt(0);
+      range.insertNode(img);
+      range.collapse(false);
+    } else {
+      area.appendChild(img);
+    }
+  }
+
+  // ── Resize selected image ──
+  function resizeStatImage(size) {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    // Try to find the last clicked image
+    const area = document.getElementById('stat-editor-area');
+    const imgs = area.querySelectorAll('img');
+    if (lastClickedStatImg) {
+      lastClickedStatImg.style.width = size;
+    } else if (imgs.length > 0) {
+      imgs[imgs.length - 1].style.width = size;
+    }
+  }
+
+  let lastClickedStatImg = null;
+  document.addEventListener('click', (e) => {
+    if (e.target.tagName === 'IMG' && document.getElementById('stat-editor-area').contains(e.target)) {
+      lastClickedStatImg = e.target;
+    }
+  });
+
+  // ── Drag & drop images into editor ──
+  const statArea = document.getElementById('stat-editor-area');
+  statArea.addEventListener('dragover', e => e.preventDefault());
+  statArea.addEventListener('drop', e => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = document.createElement('img');
+        img.src = ev.target.result;
+        img.style.width = '100%';
+        statArea.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  // ── Open stat editor via admin panel ──
+  function openStatEditor(postId) {
+    document.getElementById('stat-edit-id').value = postId || '';
+    const area   = document.getElementById('stat-editor-area');
+    const areaCs = document.getElementById('stat-editor-cs-area');
+    if (postId) {
+      const post = loadStats().find(p => p.id === postId);
+      if (post) {
+        document.getElementById('stat-title-input').value    = post.title;
+        document.getElementById('stat-tag-input').value      = post.tag || '';
+        document.getElementById('stat-title-cs-input').value = post.titleCs || '';
+        area.innerHTML   = post.content;
+        areaCs.innerHTML = post.contentCs || '';
+      }
+    } else {
+      document.getElementById('stat-title-input').value    = '';
+      document.getElementById('stat-tag-input').value      = '';
+      document.getElementById('stat-title-cs-input').value = '';
+      area.innerHTML   = '';
+      areaCs.innerHTML = '';
+    }
+    lastClickedStatImg = null;
+    openAdminPanel();
+    switchAdminTab('stat');
+  }
+  function closeStatEditor() { closeAdminPanel(); }
+
+  // ── Save stat post ──
+  function saveStatPost() {
+    const title     = document.getElementById('stat-title-input').value.trim();
+    const tag       = document.getElementById('stat-tag-input').value.trim();
+    const content   = document.getElementById('stat-editor-area').innerHTML.trim();
+    const titleCs   = document.getElementById('stat-title-cs-input').value.trim();
+    const contentCs = document.getElementById('stat-editor-cs-area').innerHTML.trim();
+    const editId    = document.getElementById('stat-edit-id').value;
+    if (!title) { alert('Please enter a title.'); return; }
+    if (!content || content === '<br>') { alert('Content cannot be empty.'); return; }
+    const stats = loadStats();
+    if (editId) {
+      const idx = stats.findIndex(p => p.id === editId);
+      if (idx !== -1) { stats[idx] = { ...stats[idx], title, tag, content, titleCs, contentCs, edited: new Date().toISOString() }; }
+    } else {
+      stats.push({ id: Date.now().toString(), title, tag, content, titleCs, contentCs, added: new Date().toISOString() });
+    }
+    saveStats(stats);
+    document.getElementById('stat-edit-id').value = '';
+    closeAdminPanel();
+    renderStats();
+    if (editId && currentStatReadingId === editId) openStatReader(editId);
+  }
+
+  // ── Render list ──
+  function renderStats() {
+    const stats = loadStats().slice().reverse(); // newest first
+    const list  = document.getElementById('stat-list');
+    const empty = document.getElementById('stat-empty');
+    list.innerHTML = '';
+    if (stats.length === 0) { empty.style.display='block'; list.style.display='none'; return; }
+    empty.style.display = 'none'; list.style.display = 'flex';
+
+    stats.forEach(post => {
+      const isCs        = currentLang === 'cs';
+      const dispTitle   = (isCs && post.titleCs)   ? post.titleCs   : post.title;
+      const dispContent = (isCs && post.contentCs) ? post.contentCs : post.content;
+      const div = document.createElement('div');
+      div.className = 'stat-post-card';
+      const tmp = document.createElement('div');
+      tmp.innerHTML = dispContent;
+      const excerpt  = (tmp.textContent || '').slice(0, 220).trim() + '…';
+      const firstImg = tmp.querySelector('img');
+      const readMin  = Math.max(1, Math.round((tmp.textContent || '').split(' ').length / 200));
+      const editLabel = isCs ? 'upraveno'  : 'edited';
+      const readLabel = isCs ? 'min čtení' : 'min read';
+      const editBtn   = isCs ? '✎ Upravit' : '✎ Edit';
+      const delBtn    = isCs ? '✕ Smazat'  : '✕ Delete';
+      const readBtn   = isCs ? 'Číst →'    : 'Read →';
+
+      div.innerHTML = `
+        ${post.tag ? `<span class="blog-tag">${post.tag}</span>` : ''}
+        <div class="blog-title" style="margin-top:${post.tag?'10px':'0'}">${dispTitle}</div>
+        <div style="display:grid;grid-template-columns:${firstImg?'1fr 180px':'1fr'};gap:20px;align-items:start;margin-top:10px;">
+          <div>
+            <div class="blog-excerpt">${excerpt}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;">
+              <div class="blog-meta">
+                <span>${formatDateBlog(post.added, isCs)}</span>
+                <span>·</span>
+                <span>${readMin} ${readLabel}</span>
+                ${post.edited ? `<span>·</span><span style="color:var(--amber)">${editLabel}</span>` : ''}
+              </div>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--amber);">${readBtn}</span>
+            </div>
+          </div>
+          ${firstImg ? `<img src="${firstImg.src}" class="stat-preview-img" alt="preview"/>` : ''}
+        </div>
+      `;
+      div.addEventListener('click', () => openStatReader(post.id));
+      list.appendChild(div);
+    });
+  }
+
+  // ── Reader ──
+  function openStatReader(postId) {
+    const post = loadStats().find(p => p.id === postId);
+    if (!post) return;
+    currentStatReadingId = postId;
+    const isCs = currentLang === 'cs';
+    const dispTitle   = (isCs && post.titleCs)   ? post.titleCs   : post.title;
+    const dispContent = (isCs && post.contentCs) ? post.contentCs : post.content;
+    document.getElementById('stat-reader-tag').textContent   = post.tag || (isCs ? 'Statistika' : 'Statistics');
+    document.getElementById('stat-reader-title').textContent = dispTitle;
+    document.getElementById('stat-reader-date').textContent  = formatDateBlog(post.added, isCs) + (post.edited ? (isCs ? ' · upraveno' : ' · edited') : '');
+    document.getElementById('stat-reader-content').innerHTML = dispContent;
+    document.getElementById('stat-reader-edit-btn').textContent   = isCs ? '✎ Upravit' : '✎ Edit';
+    document.getElementById('stat-reader-delete-btn').textContent = isCs ? '✕ Smazat'  : '✕ Delete';
+    document.getElementById('stat-reader-edit-btn').onclick   = () => { closeStatReader(); openStatEditor(postId); };
+    document.getElementById('stat-reader-delete-btn').onclick = () => deleteStatPostById(postId);
+    const modal = document.getElementById('stat-reader-modal');
+    modal.style.display = 'flex';
+    modal.scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeStatReader() {
+    document.getElementById('stat-reader-modal').style.display = 'none';
+    document.body.style.overflow = '';
+    currentStatReadingId = null;
+  }
+  document.getElementById('stat-reader-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeStatReader();
+  });
+
+  // ── Delete ──
+  function deleteStatPostById(postId) {
+    const isCs = currentLang === 'cs';
+    if (!confirm(isCs ? 'Opravdu smazat tuto statistiku?' : 'Delete this statistic?')) return;
+    saveStats(loadStats().filter(p => p.id !== postId));
+    closeStatReader();
+    renderStats();
+  }
+
+  // ── Init ──
+  renderStats();
+</script>
+
+<!-- ══ ABOUT ══ -->
+<section id="o-projektu" class="about">
+  <div class="about-grid">
+    <div>
+      <div class="section-eyebrow" data-i18n="about.eyebrow">About the Project</div>
+      <div class="section-title" style="margin-bottom:28px;" data-i18n="about.title">The Sixth Player<br/>on Every Team</div>
+      <div class="about-text">
+        <p data-i18n="about.p1">BE6PLAYER was born from the belief that <strong>data can tell a story</strong> that you simply can't see just by watching a game. Every move, every pass, every decision leaves a trace in the numbers.</p>
+        <p data-i18n="about.p2">Our channel brings sports statistics, trends and fascinating insights across various leagues and sports. From data breakdowns to surprising facts — <strong>we make sports analytics understandable, engaging and accessible</strong> for every fan.</p>
+        <p data-i18n="about.p3">As the sixth player, we see what others overlook. And we share it with you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ NEWSLETTER ══ -->
+<section class="newsletter">
+  <div class="section-eyebrow" style="margin-bottom:12px;" data-i18n="newsletter.eyebrow">Newsletter</div>
+  <div class="section-title" data-i18n="newsletter.title">Never Miss an Analysis</div>
+  <p class="newsletter-sub" data-i18n="newsletter.sub">Every new article or video straight to your inbox. No spam, just pure data.</p>
+  <div class="newsletter-form">
+    <input class="newsletter-input" type="email" data-i18n-placeholder="newsletter.placeholder" placeholder="your@email.com"/>
+    <button class="newsletter-btn" data-i18n="newsletter.btn">Subscribe</button>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div>
+    <div class="footer-logo">BE6PLAYER</div>
+    <div class="footer-desc" data-i18n="footer.desc">Discover the Numbers Behind the Games. Sports statistics, trends and analytical insights for every fan.</div>
+    <div class="footer-copy" data-i18n="footer.copy">© 2025 BE6PLAYER. All rights reserved.</div>
+  </div>
+  <div class="footer-links">
+    <div class="footer-social">
+      <a href="https://www.youtube.com/@be6player" target="_blank" title="YouTube">
+        <svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.8 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+      </a>
+      <a href="https://x.com/Be6player" target="_blank" title="Twitter/X">
+        <svg viewBox="0 0 24 24"><path d="M18.2 2h3.5l-7.7 8.8L23 22h-7.1l-5.5-7.2L4.1 22H.6l8.2-9.4L1 2h7.3l5 6.6L18.2 2zm-1.2 18h1.9L7.1 4H5L17 20z"/></svg>
+      </a>
+      <a href="#" title="Instagram">
+        <svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 3.3.2 4.8 1.7 5 5 .1 1.3.1 1.6.1 4.8 0 3.2 0 3.6-.1 4.9-.2 3.2-1.7 4.8-5 5-1.3.1-1.6.1-4.9.1-3.2 0-3.6 0-4.8-.1-3.3-.2-4.8-1.7-5-5-.1-1.3-.1-1.6-.1-4.9 0-3.2 0-3.6.1-4.8.2-3.3 1.7-4.8 5-5 1.2-.1 1.6-.1 4.8-.1zm0-2.2C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1 0 8.3 0 8.7 0 12c0 3.3 0 3.7.1 4.9.2 4.4 2.6 6.8 7 7C8.3 24 8.7 24 12 24s3.7 0 4.9-.1c4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9 0-3.3 0-3.7-.1-4.9-.2-4.4-2.6-6.8-7-7C15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4 6.2 6.2 0 0 0 0-12.4zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.9a1.45 1.45 0 1 0 0 2.9 1.45 1.45 0 0 0 0-2.9z"/></svg>
+      </a>
+    </div>
+    <div class="footer-nav">
+      <a href="#videa" data-i18n="nav.videos">Videos</a>
+      <a href="#blog">Blog</a>
+      <a href="#statistiky" data-i18n="nav.stats">Statistics</a>
+      <a href="#o-projektu" data-i18n="nav.about">About</a>
+      <a href="#" onclick="openAdminPanel(); return false;" style="color:rgba(255,255,255,0.15); font-size:10px; letter-spacing:1px;">aktualizace</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ══ ADMIN PANEL ══ -->
+<div id="admin-panel" style="
+  display:none; position:fixed; inset:0;
+  background:rgba(10,15,30,0.90); z-index:3000;
+  align-items:flex-start; justify-content:center;
+  overflow-y:auto; padding:40px 16px;
+">
+  <div style="
+    background:white; width:100%; max-width:760px;
+    border-radius:4px; overflow:hidden;
+    box-shadow:0 24px 80px rgba(0,0,0,0.5);
+  ">
+    <!-- Header -->
+    <div style="background:var(--navy); padding:20px 28px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <span style="font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:18px; letter-spacing:3px; text-transform:uppercase; color:var(--amber);">
+        ⚙ Správa obsahu
+      </span>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button onclick="exportData()" style="
+          padding:8px 18px; background:none;
+          border:1px solid rgba(200,95,0,0.5); border-radius:2px;
+          font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px;
+          letter-spacing:2px; text-transform:uppercase; color:var(--amber); cursor:pointer;
+          transition:background 0.2s;"
+          onmouseover="this.style.background='rgba(200,95,0,0.15)'" onmouseout="this.style.background='none'"
+          title="Stáhni zálohu všech dat">
+          ↓ Export dat
+        </button>
+        <label style="
+          padding:8px 18px; background:none;
+          border:1px solid rgba(154,172,190,0.4); border-radius:2px;
+          font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px;
+          letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.5); cursor:pointer;
+          transition:background 0.2s;"
+          onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='none'"
+          title="Načti zálohu dat">
+          ↑ Import dat
+          <input type="file" accept=".json,application/json,text/plain,*/*" onchange="importData(event)" style="display:none;"/>
+        </label>
+        <button onclick="closeAdminPanel()" style="background:none; border:none; color:rgba(255,255,255,0.5); font-size:22px; cursor:pointer; line-height:1; margin-left:4px;">✕</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex; border-bottom:2px solid var(--grey-light); background:var(--off-white);">
+      <button class="admin-tab active" id="atab-video" onclick="switchAdminTab('video')">
+        ▶ Video
+      </button>
+      <button class="admin-tab" id="atab-blog" onclick="switchAdminTab('blog')">
+        ✎ Blog
+      </button>
+      <button class="admin-tab" id="atab-stat" onclick="switchAdminTab('stat')">
+        📊 Statistika
+      </button>
+      <button class="admin-tab" id="atab-week" onclick="switchAdminTab('week')">
+        ⬡ Číslo týdne
+      </button>
+    </div>
+
+    <!-- Tab: VIDEO -->
+    <div id="apanel-video" class="apanel" style="padding:28px;">
+      <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:20px;">Přidat YouTube video</div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label style="display:block; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:6px;">YouTube odkaz</label>
+          <input id="yt-url-input" type="text" placeholder="https://www.youtube.com/watch?v=..."
+            style="width:100%; padding:11px 16px; border:2px solid var(--grey-light); border-radius:2px; font-family:'Barlow',sans-serif; font-size:15px; color:var(--text); outline:none; background:white; transition:border-color 0.2s; box-sizing:border-box;"
+            onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"
+            onkeydown="if(event.key==='Enter') addVideo()"/>
+        </div>
+        <div>
+          <label style="display:block; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:6px;">Popis (volitelný)</label>
+          <input id="yt-desc-input" type="text" placeholder="Krátký popis videa..."
+            style="width:100%; padding:11px 16px; border:2px solid var(--grey-light); border-radius:2px; font-family:'Barlow',sans-serif; font-size:15px; color:var(--text); outline:none; background:white; transition:border-color 0.2s; box-sizing:border-box;"
+            onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"
+            onkeydown="if(event.key==='Enter') addVideo()"/>
+        </div>
+        <div id="yt-error" style="color:#c0392b; font-family:'Barlow Condensed',sans-serif; font-size:13px; letter-spacing:1px; display:none;">
+          ⚠ Nepodařilo se rozpoznat YouTube odkaz.
+        </div>
+        <div>
+          <button onclick="addVideo()" style="
+            padding:12px 32px; background:var(--amber); color:white;
+            font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px;
+            letter-spacing:2px; text-transform:uppercase;
+            border:none; border-radius:2px; cursor:pointer; transition:background 0.2s;"
+            onmouseover="this.style.background='var(--amber-light)'" onmouseout="this.style.background='var(--amber)'">
+            + Přidat video
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Existing videos list ── -->
+      <div style="margin-top:32px; border-top:2px solid var(--grey-light); padding-top:24px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:14px;">Vložená videa</div>
+        <div id="admin-video-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div id="admin-video-empty" style="font-family:'Barlow Condensed',sans-serif; font-size:14px; color:var(--grey-mid); display:none;">Zatím žádná videa.</div>
+      </div>
+    </div>
+
+    <!-- Tab: BLOG -->
+    <div id="apanel-blog" class="apanel" style="padding:28px; display:none;">
+      <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:16px;">New Article</div>
+
+      <!-- EN fields -->
+      <div style="border-left:3px solid var(--amber); padding-left:14px; margin-bottom:18px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">🇬🇧 English (required)</div>
+        <div style="display:grid; grid-template-columns:1fr auto; gap:12px; margin-bottom:12px;">
+          <input id="blog-title-input" type="text" placeholder="Article title..."
+            style="padding:12px 16px; border:2px solid var(--grey-light); border-radius:2px;
+            font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:18px;
+            color:var(--navy); outline:none; transition:border-color 0.2s; width:100%; box-sizing:border-box;"
+            onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"/>
+          <input id="blog-tag-input" type="text" placeholder="Tag"
+            style="padding:12px 14px; border:2px solid var(--grey-light); border-radius:2px;
+            font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:14px;
+            letter-spacing:1px; color:var(--amber); outline:none; width:110px; transition:border-color 0.2s; box-sizing:border-box;"
+            onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"/>
+        </div>
+        <!-- Blog toolbar -->
+        <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; padding:8px 10px; background:var(--off-white); border:1px solid var(--grey-light); border-bottom:none; border-radius:2px 2px 0 0;">
+          <select onchange="blogExec('fontSize',this.value);this.value=''" style="padding:5px 6px;border:1px solid var(--grey-light);border-radius:2px;font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--text);background:white;cursor:pointer;">
+            <option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Heading</option>
+          </select>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <button onclick="blogExec('bold')"          class="tb-btn"><b>B</b></button>
+          <button onclick="blogExec('italic')"        class="tb-btn"><i>I</i></button>
+          <button onclick="blogExec('underline')"     class="tb-btn"><u>U</u></button>
+          <button onclick="blogExec('strikeThrough')" class="tb-btn"><s>S</s></button>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--grey-dark);">A<input type="color" value="#c85f00" onchange="blogExec('foreColor',this.value)" style="width:24px;height:20px;border:none;padding:0;cursor:pointer;border-radius:2px;"/></label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--grey-dark);">▓<input type="color" value="#fff4ec" onchange="blogExec('hiliteColor',this.value)" style="width:24px;height:20px;border:none;padding:0;cursor:pointer;border-radius:2px;"/></label>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <button onclick="blogExec('justifyLeft')"   class="tb-btn">≡←</button>
+          <button onclick="blogExec('justifyCenter')" class="tb-btn">≡</button>
+          <button onclick="blogExec('justifyRight')"  class="tb-btn">≡→</button>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <button onclick="blogExec('insertUnorderedList')" class="tb-btn">• —</button>
+          <button onclick="blogExec('insertOrderedList')"   class="tb-btn">1.</button>
+          <button onclick="blogExec('indent')"  class="tb-btn">→|</button>
+          <button onclick="blogExec('outdent')" class="tb-btn">|←</button>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <button onclick="blogExec('removeFormat')" class="tb-btn" style="color:#c0392b;">✕</button>
+        </div>
+        <div id="blog-editor-area" contenteditable="true"
+          style="min-height:200px;max-height:320px;overflow-y:auto;padding:18px 20px;border:1px solid var(--grey-light);border-radius:0 0 2px 2px;font-family:'Barlow',sans-serif;font-size:15px;line-height:1.8;color:var(--text);outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"
+          data-placeholder="Start writing or paste from Word (Ctrl+V)..."></div>
+      </div>
+
+      <!-- CS translation fields -->
+      <div style="border-left:3px solid #9aacbe; padding-left:14px; margin-bottom:18px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey-dark);margin-bottom:10px;">🇨🇿 Čeština (volitelné)</div>
+        <input id="blog-title-cs-input" type="text" placeholder="Název článku v češtině..."
+          style="width:100%; padding:11px 16px; border:2px solid var(--grey-light); border-radius:2px;
+          font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:16px;
+          color:var(--navy); outline:none; transition:border-color 0.2s; margin-bottom:10px; box-sizing:border-box;"
+          onfocus="this.style.borderColor='var(--grey-mid)'" onblur="this.style.borderColor='var(--grey-light)'"/>
+        <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; padding:6px 10px; background:var(--off-white); border:1px solid var(--grey-light); border-bottom:none; border-radius:2px 2px 0 0;">
+          <button onclick="blogCsExec('bold')"          class="tb-btn"><b>B</b></button>
+          <button onclick="blogCsExec('italic')"        class="tb-btn"><i>I</i></button>
+          <button onclick="blogCsExec('underline')"     class="tb-btn"><u>U</u></button>
+          <button onclick="blogCsExec('insertUnorderedList')" class="tb-btn">• —</button>
+          <button onclick="blogCsExec('insertOrderedList')"   class="tb-btn">1.</button>
+          <button onclick="blogCsExec('removeFormat')"  class="tb-btn" style="color:#c0392b;">✕</button>
+        </div>
+        <div id="blog-editor-cs-area" contenteditable="true"
+          style="min-height:160px;max-height:280px;overflow-y:auto;padding:14px 18px;border:1px solid var(--grey-light);border-radius:0 0 2px 2px;font-family:'Barlow',sans-serif;font-size:15px;line-height:1.8;color:var(--text);outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--grey-mid)'" onblur="this.style.borderColor='var(--grey-light)'"
+          data-placeholder="Překlad článku do češtiny..."></div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;color:var(--grey-mid);margin-top:6px;">Pokud nevyplníte, zobrazí se anglický text i při přepnutí do češtiny.</div>
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:4px;">
+        <input type="hidden" id="blog-edit-id"/>
+        <button onclick="saveBlogPost()" style="padding:11px 28px;background:var(--amber);border:none;border-radius:2px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:white;cursor:pointer;" onmouseover="this.style.background='var(--amber-light)'" onmouseout="this.style.background='var(--amber)'">Publish Article</button>
+      </div>
+
+      <!-- ── Existing blog posts list ── -->
+      <div style="margin-top:32px; border-top:2px solid var(--grey-light); padding-top:24px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:14px;">Vložené články</div>
+        <div id="admin-blog-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div id="admin-blog-empty" style="font-family:'Barlow Condensed',sans-serif; font-size:14px; color:var(--grey-mid); display:none;">Zatím žádné články.</div>
+      </div>
+    </div>
+
+    <!-- Tab: STAT -->
+    <div id="apanel-stat" class="apanel" style="padding:28px; display:none;">
+      <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:16px;">New Statistic / Visualization</div>
+
+      <!-- EN fields -->
+      <div style="border-left:3px solid var(--amber); padding-left:14px; margin-bottom:18px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">🇬🇧 English (required)</div>
+        <div style="display:grid; grid-template-columns:1fr auto; gap:12px; margin-bottom:12px;">
+          <input id="stat-title-input" type="text" placeholder="Title of the statistic / analysis..."
+            style="padding:12px 16px; border:2px solid var(--grey-light); border-radius:2px;
+            font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:18px;
+            color:var(--navy); outline:none; transition:border-color 0.2s; width:100%; box-sizing:border-box;"
+            onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"/>
+          <input id="stat-tag-input" type="text" placeholder="Tag"
+            style="padding:12px 14px; border:2px solid var(--grey-light); border-radius:2px;
+            font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:14px;
+            letter-spacing:1px; color:var(--amber); outline:none; width:110px; transition:border-color 0.2s; box-sizing:border-box;"
+            onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"/>
+        </div>
+        <!-- Stat toolbar -->
+        <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; padding:8px 10px; background:var(--off-white); border:1px solid var(--grey-light); border-bottom:none; border-radius:2px 2px 0 0;">
+          <select onchange="statExec('fontSize',this.value);this.value=''" style="padding:5px 6px;border:1px solid var(--grey-light);border-radius:2px;font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--text);background:white;cursor:pointer;">
+            <option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Heading</option>
+          </select>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <button onclick="statExec('bold')"          class="tb-btn"><b>B</b></button>
+          <button onclick="statExec('italic')"        class="tb-btn"><i>I</i></button>
+          <button onclick="statExec('underline')"     class="tb-btn"><u>U</u></button>
+          <button onclick="statExec('strikeThrough')" class="tb-btn"><s>S</s></button>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--grey-dark);">A<input type="color" value="#c85f00" onchange="statExec('foreColor',this.value)" style="width:24px;height:20px;border:none;padding:0;cursor:pointer;border-radius:2px;"/></label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--grey-dark);">▓<input type="color" value="#fff4ec" onchange="statExec('hiliteColor',this.value)" style="width:24px;height:20px;border:none;padding:0;cursor:pointer;border-radius:2px;"/></label>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <button onclick="statExec('justifyLeft')"   class="tb-btn">≡←</button>
+          <button onclick="statExec('justifyCenter')" class="tb-btn">≡</button>
+          <button onclick="statExec('justifyRight')"  class="tb-btn">≡→</button>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <button onclick="statExec('insertUnorderedList')" class="tb-btn">• —</button>
+          <button onclick="statExec('insertOrderedList')"   class="tb-btn">1.</button>
+          <button onclick="statExec('indent')"  class="tb-btn">→|</button>
+          <button onclick="statExec('outdent')" class="tb-btn">|←</button>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <label title="Insert image" style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:5px 9px;background:white;border:1px solid var(--grey-light);border-radius:2px;font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--text);transition:background 0.15s;" onmouseover="this.style.background='var(--amber-pale)';this.style.borderColor='var(--amber)';this.style.color='var(--amber)'" onmouseout="this.style.background='white';this.style.borderColor='var(--grey-light)';this.style.color='var(--text)'">
+            🖼 Image<input type="file" accept="image/*" onchange="insertStatImage(event)" style="display:none;"/>
+          </label>
+          <button onclick="insertStatImageUrl()" class="tb-btn">🔗 URL</button>
+          <select onchange="resizeStatImage(this.value);this.value=''" style="padding:5px 6px;border:1px solid var(--grey-light);border-radius:2px;font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--text);background:white;cursor:pointer;">
+            <option value="">Img size</option><option value="25%">25%</option><option value="50%">50%</option><option value="75%">75%</option><option value="100%">100%</option>
+          </select>
+          <div style="width:1px;height:24px;background:var(--grey-light);margin:0 4px;"></div>
+          <button onclick="statExec('removeFormat')" class="tb-btn" style="color:#c0392b;">✕</button>
+        </div>
+        <div id="stat-editor-area" contenteditable="true"
+          style="min-height:200px;max-height:320px;overflow-y:auto;padding:18px 20px;border:1px solid var(--grey-light);border-radius:0 0 2px 2px;font-family:'Barlow',sans-serif;font-size:15px;line-height:1.8;color:var(--text);outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"
+          data-placeholder="Description, methodology, results... Insert images with the button above."></div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;color:var(--grey-mid);margin-top:6px;">💡 Ctrl+V from Word · 🖼 Images from file or URL · Drag &amp; drop works too</div>
+      </div>
+
+      <!-- CS translation fields -->
+      <div style="border-left:3px solid #9aacbe; padding-left:14px; margin-bottom:18px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey-dark);margin-bottom:10px;">🇨🇿 Čeština (volitelné)</div>
+        <input id="stat-title-cs-input" type="text" placeholder="Název statistiky v češtině..."
+          style="width:100%; padding:11px 16px; border:2px solid var(--grey-light); border-radius:2px;
+          font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:16px;
+          color:var(--navy); outline:none; transition:border-color 0.2s; margin-bottom:10px; box-sizing:border-box;"
+          onfocus="this.style.borderColor='var(--grey-mid)'" onblur="this.style.borderColor='var(--grey-light)'"/>
+        <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; padding:6px 10px; background:var(--off-white); border:1px solid var(--grey-light); border-bottom:none; border-radius:2px 2px 0 0;">
+          <button onclick="statCsExec('bold')"          class="tb-btn"><b>B</b></button>
+          <button onclick="statCsExec('italic')"        class="tb-btn"><i>I</i></button>
+          <button onclick="statCsExec('underline')"     class="tb-btn"><u>U</u></button>
+          <button onclick="statCsExec('insertUnorderedList')" class="tb-btn">• —</button>
+          <button onclick="statCsExec('insertOrderedList')"   class="tb-btn">1.</button>
+          <button onclick="statCsExec('removeFormat')"  class="tb-btn" style="color:#c0392b;">✕</button>
+        </div>
+        <div id="stat-editor-cs-area" contenteditable="true"
+          style="min-height:140px;max-height:240px;overflow-y:auto;padding:14px 18px;border:1px solid var(--grey-light);border-radius:0 0 2px 2px;font-family:'Barlow',sans-serif;font-size:15px;line-height:1.8;color:var(--text);outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--grey-mid)'" onblur="this.style.borderColor='var(--grey-light)'"
+          data-placeholder="Překlad statistiky do češtiny..."></div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;color:var(--grey-mid);margin-top:6px;">Pokud nevyplníte, zobrazí se anglický text i při přepnutí do češtiny.</div>
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:4px;">
+        <input type="hidden" id="stat-edit-id"/>
+        <button onclick="saveStatPost()" style="padding:11px 28px;background:var(--amber);border:none;border-radius:2px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:white;cursor:pointer;" onmouseover="this.style.background='var(--amber-light)'" onmouseout="this.style.background='var(--amber)'">Publish</button>
+      </div>
+
+      <!-- ── Existing stats list ── -->
+      <div style="margin-top:32px; border-top:2px solid var(--grey-light); padding-top:24px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:14px;">Vložené statistiky</div>
+        <div id="admin-stat-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div id="admin-stat-empty" style="font-family:'Barlow Condensed',sans-serif; font-size:14px; color:var(--grey-mid); display:none;">Zatím žádné statistiky.</div>
+      </div>
+    </div>
+
+    <!-- Tab: WEEK NUMBER -->
+    <div id="apanel-week" class="apanel" style="padding:28px; display:none;">
+      <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:8px;">Upravit číslo týdne</div>
+      <div style="font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:1px; color:var(--grey-mid); margin-bottom:20px;">Krátká zajímavá informace zobrazená v oranžovém pruhu na hlavní stránce.</div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <label style="display:block; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:6px;">Číslo / hodnota</label>
+          <input id="sw-input-number" type="text" placeholder="např. 73.4% nebo 42"
+            style="width:100%; padding:12px 16px; border:2px solid var(--grey-light); border-radius:2px; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:22px; color:var(--amber); outline:none; transition:border-color 0.2s; box-sizing:border-box;"
+            onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"/>
+        </div>
+        <div>
+          <label style="display:block; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:6px;">Krátký popis (1–2 věty)</label>
+          <textarea id="sw-input-desc" rows="2" placeholder="např. Týmy, které dominují v přihrávkách, vyhrávají o 31 % více zápasů..."
+            style="width:100%; padding:11px 16px; border:2px solid var(--grey-light); border-radius:2px; font-family:'Barlow',sans-serif; font-size:15px; line-height:1.6; color:var(--text); outline:none; resize:vertical; transition:border-color 0.2s; box-sizing:border-box;"
+            onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"></textarea>
+        </div>
+        <div>
+          <label style="display:block; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--grey-dark); margin-bottom:6px;">Sport / sezóna (štítek)</label>
+          <input id="sw-input-sport" type="text" placeholder="např. NHL · Sezóna 2024/25"
+            style="width:100%; padding:11px 16px; border:2px solid var(--grey-light); border-radius:2px; font-family:'Barlow',sans-serif; font-size:15px; color:var(--text); outline:none; transition:border-color 0.2s; box-sizing:border-box;"
+            onfocus="this.style.borderColor='var(--amber)'" onblur="this.style.borderColor='var(--grey-light)'"/>
+        </div>
+        <div>
+          <button onclick="saveStatWeek()" style="
+            padding:12px 32px; background:var(--amber); color:white;
+            font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px;
+            letter-spacing:2px; text-transform:uppercase;
+            border:none; border-radius:2px; cursor:pointer; transition:background 0.2s;"
+            onmouseover="this.style.background='var(--amber-light)'" onmouseout="this.style.background='var(--amber)'">
+            Uložit číslo týdne
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .admin-tab {
+    padding:14px 28px;
+    font-family:'Barlow Condensed',sans-serif; font-weight:700;
+    font-size:14px; letter-spacing:2px; text-transform:uppercase;
+    background:none; border:none; border-bottom:3px solid transparent;
+    color:var(--grey-dark); cursor:pointer; transition:color 0.2s, border-color 0.2s;
+  }
+  .admin-tab:hover { color:var(--amber); }
+  .admin-tab.active { color:var(--amber); border-bottom-color:var(--amber); }
+
+  #blog-editor-area:empty::before,
+  #stat-editor-area:empty::before,
+  #blog-editor-cs-area:empty::before,
+  #stat-editor-cs-area:empty::before {
+    content: attr(data-placeholder);
+    color: var(--grey-mid);
+    pointer-events: none;
+  }
+  #stat-editor-area img {
+    max-width:100%; height:auto; display:block;
+    margin:10px 0; border-radius:2px; cursor:pointer;
+    outline:2px solid transparent; transition:outline-color 0.2s;
+  }
+  #stat-editor-area img:hover { outline-color: var(--amber); }
+</style>
+
+<script>
+  // ── Export all data ──
+  function exportData() {
+    const data = {
+      videos:  JSON.parse(localStorage.getItem('be6player_videos') || '[]'),
+      posts:   JSON.parse(localStorage.getItem('be6player_posts')  || '[]'),
+      stats:   JSON.parse(localStorage.getItem('be6player_stats')  || '[]'),
+      week:    JSON.parse(localStorage.getItem('be6player_week')   || 'null'),
+      exported: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'be6player_data_' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ── Import data from JSON file ──
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        // Strip BOM and trim whitespace
+        let raw = e.target.result.replace(/^\uFEFF/, '').trim();
+        const data = JSON.parse(raw);
+
+        // Accept files even if some keys are missing
+        if (data.videos !== undefined) localStorage.setItem('be6player_videos', JSON.stringify(data.videos));
+        if (data.posts  !== undefined) localStorage.setItem('be6player_posts',  JSON.stringify(data.posts));
+        if (data.stats  !== undefined) localStorage.setItem('be6player_stats',  JSON.stringify(data.stats));
+        if (data.week   !== undefined && data.week !== null) localStorage.setItem('be6player_week', JSON.stringify(data.week));
+
+        renderVideos();
+        renderBlog();
+        renderStats();
+
+        if (data.week) {
+          if (data.week.num)   document.getElementById('sw-number').textContent = data.week.num;
+          if (data.week.desc)  { document.getElementById('sw-desc').textContent = data.week.desc; document.getElementById('sw-detail').textContent = data.week.desc; }
+          if (data.week.sport) document.getElementById('sw-sport').textContent  = data.week.sport;
+        }
+
+        const vCount = (data.videos||[]).length;
+        const bCount = (data.posts||[]).length;
+        const sCount = (data.stats||[]).length;
+        alert('✓ Data úspěšně načtena!\nVidea: ' + vCount + '\nBlogy: ' + bCount + '\nStatistiky: ' + sCount);
+      } catch(err) {
+        alert('⚠ Chyba při načítání souboru.\n\nDetail: ' + err.message + '\n\nUjisti se, že soubor nebyl poškozen a jde o export z BE6PLAYER.');
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+    event.target.value = '';
+  }
+
+  // ── Admin content lists ──
+  function renderAdminVideoList() {
+    const videos = loadVideos().slice().reverse();
+    const el = document.getElementById('admin-video-list');
+    const empty = document.getElementById('admin-video-empty');
+    if (!el) return;
+    el.innerHTML = '';
+    if (videos.length === 0) { empty.style.display='block'; el.style.display='none'; return; }
+    empty.style.display = 'none'; el.style.display = 'flex';
+    videos.forEach(v => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--off-white);border:1px solid var(--grey-light);border-radius:2px;';
+      const thumb = `https://img.youtube.com/vi/${v.id}/default.jpg`;
+      row.innerHTML = `
+        <img src="${thumb}" style="width:64px;height:36px;object-fit:cover;border-radius:1px;flex-shrink:0;" onerror="this.style.display='none'"/>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.title || v.id}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--grey-mid);letter-spacing:1px;">${formatDate(v.added)}</div>
+        </div>
+        <button onclick="adminDeleteVideo('${v.id}')" style="flex-shrink:0;padding:6px 12px;background:none;border:1px solid rgba(192,57,43,0.4);border-radius:2px;color:#c0392b;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" onmouseover="this.style.background='rgba(192,57,43,0.08)'" onmouseout="this.style.background='none'">✕ Smazat</button>
+      `;
+      el.appendChild(row);
+    });
+  }
+
+  function renderAdminBlogList() {
+    const posts = loadPosts().slice().reverse();
+    const el = document.getElementById('admin-blog-list');
+    const empty = document.getElementById('admin-blog-empty');
+    if (!el) return;
+    el.innerHTML = '';
+    if (posts.length === 0) { empty.style.display='block'; el.style.display='none'; return; }
+    empty.style.display = 'none'; el.style.display = 'flex';
+    posts.forEach(p => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--off-white);border:1px solid var(--grey-light);border-radius:2px;';
+      row.innerHTML = `
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--grey-mid);letter-spacing:1px;">${formatDateBlog(p.added, false)}${p.tag ? ' · '+p.tag : ''}</div>
+        </div>
+        <button onclick="adminEditBlog('${p.id}')" style="flex-shrink:0;padding:6px 12px;background:none;border:1px solid rgba(200,95,0,0.4);border-radius:2px;color:var(--amber);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" onmouseover="this.style.background='rgba(200,95,0,0.08)'" onmouseout="this.style.background='none'">✎ Upravit</button>
+        <button onclick="adminDeleteBlog('${p.id}')" style="flex-shrink:0;padding:6px 12px;background:none;border:1px solid rgba(192,57,43,0.4);border-radius:2px;color:#c0392b;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" onmouseover="this.style.background='rgba(192,57,43,0.08)'" onmouseout="this.style.background='none'">✕ Smazat</button>
+      `;
+      el.appendChild(row);
+    });
+  }
+
+  function renderAdminStatList() {
+    const stats = loadStats().slice().reverse();
+    const el = document.getElementById('admin-stat-list');
+    const empty = document.getElementById('admin-stat-empty');
+    if (!el) return;
+    el.innerHTML = '';
+    if (stats.length === 0) { empty.style.display='block'; el.style.display='none'; return; }
+    empty.style.display = 'none'; el.style.display = 'flex';
+    stats.forEach(p => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--off-white);border:1px solid var(--grey-light);border-radius:2px;';
+      row.innerHTML = `
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--grey-mid);letter-spacing:1px;">${formatDateBlog(p.added, false)}${p.tag ? ' · '+p.tag : ''}</div>
+        </div>
+        <button onclick="adminEditStat('${p.id}')" style="flex-shrink:0;padding:6px 12px;background:none;border:1px solid rgba(200,95,0,0.4);border-radius:2px;color:var(--amber);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" onmouseover="this.style.background='rgba(200,95,0,0.08)'" onmouseout="this.style.background='none'">✎ Upravit</button>
+        <button onclick="adminDeleteStat('${p.id}')" style="flex-shrink:0;padding:6px 12px;background:none;border:1px solid rgba(192,57,43,0.4);border-radius:2px;color:#c0392b;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;" onmouseover="this.style.background='rgba(192,57,43,0.08)'" onmouseout="this.style.background='none'">✕ Smazat</button>
+      `;
+      el.appendChild(row);
+    });
+  }
+
+  // Admin action helpers
+  function adminDeleteVideo(id) {
+    if (!confirm('Odstranit toto video?')) return;
+    saveVideos(loadVideos().filter(v => v.id !== id));
+    renderVideos(); renderAdminVideoList();
+  }
+  function adminEditBlog(id) {
+    // scroll form to top, pre-fill
+    openBlogEditor(id);
+  }
+  function adminDeleteBlog(id) {
+    if (!confirm('Smazat tento článek?')) return;
+    savePosts(loadPosts().filter(p => p.id !== id));
+    renderBlog(); renderAdminBlogList();
+  }
+  function adminEditStat(id) {
+    openStatEditor(id);
+  }
+  function adminDeleteStat(id) {
+    if (!confirm('Smazat tuto statistiku?')) return;
+    saveStats(loadStats().filter(p => p.id !== id));
+    renderStats(); renderAdminStatList();
+  }
+
+  function openAdminPanel() {
+    document.getElementById('admin-panel').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    switchAdminTab('video');
+  }
+  function closeAdminPanel() {
+    document.getElementById('admin-panel').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  function switchAdminTab(tab) {
+    ['video','blog','stat','week'].forEach(t => {
+      document.getElementById('apanel-'+t).style.display = t === tab ? 'block' : 'none';
+      document.getElementById('atab-'+t).classList.toggle('active', t === tab);
+    });
+    if (tab === 'video') renderAdminVideoList();
+    if (tab === 'blog')  { renderAdminBlogList(); clearBlogForm(); }
+    if (tab === 'stat')  { renderAdminStatList(); clearStatForm(); }
+    if (tab === 'week') {
+      document.getElementById('sw-input-number').value = document.getElementById('sw-number').textContent;
+      document.getElementById('sw-input-desc').value   = document.getElementById('sw-detail').textContent.trim();
+      document.getElementById('sw-input-sport').value  = document.getElementById('sw-sport').textContent;
+    }
+  }
+
+  function clearBlogForm() {
+    if (document.getElementById('blog-edit-id').value) return; // editing, don't clear
+    document.getElementById('blog-title-input').value    = '';
+    document.getElementById('blog-tag-input').value      = '';
+    document.getElementById('blog-title-cs-input').value = '';
+    document.getElementById('blog-editor-area').innerHTML    = '';
+    document.getElementById('blog-editor-cs-area').innerHTML = '';
+  }
+  function clearStatForm() {
+    if (document.getElementById('stat-edit-id').value) return;
+    document.getElementById('stat-title-input').value    = '';
+    document.getElementById('stat-tag-input').value      = '';
+    document.getElementById('stat-title-cs-input').value = '';
+    document.getElementById('stat-editor-area').innerHTML    = '';
+    document.getElementById('stat-editor-cs-area').innerHTML = '';
+  }
+
+  // ── Save stat week ──
+  function saveStatWeek() {
+    const num   = document.getElementById('sw-input-number').value.trim();
+    const desc  = document.getElementById('sw-input-desc').value.trim();
+    const sport = document.getElementById('sw-input-sport').value.trim();
+    if (!num) { alert('Zadejte číslo / hodnotu.'); return; }
+    document.getElementById('sw-number').textContent = num;
+    document.getElementById('sw-desc').textContent   = desc;
+    document.getElementById('sw-sport').textContent  = sport;
+    document.getElementById('sw-detail').textContent = desc;
+    localStorage.setItem('be6player_week', JSON.stringify({ num, desc, sport }));
+    closeAdminPanel();
+  }
+
+  // ── Load saved stat week on page load ──
+  (function loadStatWeek() {
+    try {
+      const w = JSON.parse(localStorage.getItem('be6player_week'));
+      if (!w) return;
+      if (w.num)   document.getElementById('sw-number').textContent = w.num;
+      if (w.desc)  { document.getElementById('sw-desc').textContent = w.desc; document.getElementById('sw-detail').textContent = w.desc; }
+      if (w.sport) document.getElementById('sw-sport').textContent  = w.sport;
+    } catch {}
+  })();
+
+  // Click outside to close admin panel
+  document.getElementById('admin-panel').addEventListener('click', function(e) {
+    if (e.target === this) closeAdminPanel();
+  });
+
+  // Re-wire drag & drop for stat editor (it's now the admin panel version)
+  const statAreaAdmin = document.getElementById('stat-editor-area');
+  statAreaAdmin.addEventListener('dragover', e => e.preventDefault());
+  statAreaAdmin.addEventListener('drop', e => {
+    e.preventDefault();
+    Array.from(e.dataTransfer.files).forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = document.createElement('img');
+        img.src = ev.target.result;
+        img.style.width = '100%';
+        statAreaAdmin.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+</script>
+
+<!-- ══ DOT NETWORK ANIMATION ══ -->
+<script>
+  const canvas = document.getElementById('dotCanvas');
+  const ctx = canvas.getContext('2d');
+  const AMBER = '#c85f00';
+  const GREY = '#9aacbe';
+
+  let W, H, dots;
+  const COUNT = 55;
+  const MAX_DIST = 160;
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function initDots() {
+    dots = Array.from({length: COUNT}, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2 + 1.5,
+    }));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Update positions
+    dots.forEach(d => {
+      d.x += d.vx; d.y += d.vy;
+      if (d.x < 0 || d.x > W) d.vx *= -1;
+      if (d.y < 0 || d.y > H) d.vy *= -1;
+    });
+
+    // Draw connections
+    for (let i = 0; i < dots.length; i++) {
+      for (let j = i + 1; j < dots.length; j++) {
+        const dx = dots[i].x - dots[j].x;
+        const dy = dots[i].y - dots[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < MAX_DIST) {
+          const alpha = (1 - dist / MAX_DIST) * 0.18;
+          ctx.beginPath();
+          ctx.moveTo(dots[i].x, dots[i].y);
+          ctx.lineTo(dots[j].x, dots[j].y);
+          ctx.strokeStyle = `rgba(200,95,0,${alpha})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw dots
+    dots.forEach(d => {
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200,95,0,0.35)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); initDots(); });
+  resize();
+  initDots();
+  draw();
+</script>
+
+<!-- ══ i18n TRANSLATIONS & LANGUAGE SYSTEM ══ -->
+<script>
+  const TRANSLATIONS = {
+    en: {
+      'nav.videos': 'Videos',
+      'nav.blog': 'Blog',
+      'nav.stats': 'Statistics',
+      'nav.about': 'About',
+      'hero.label': 'Sports Analytics',
+      'hero.tagline': 'Discover the Numbers Behind the Games',
+      'hero.cta': 'Watch on YouTube',
+      'hero.scroll': 'Scroll',
+      'week.label': '⬡ Number of the Week',
+      'section.videos': 'Videos',
+      'section.allVideos': 'All videos',
+      'blog.eyebrow': 'Analysis & Commentary',
+      'blog.empty': 'No articles yet.',
+      'stats.eyebrow': 'Analysis & Data',
+      'stats.title': 'Statistics & Visualizations',
+      'stats.empty': 'No statistics yet.',
+      'about.eyebrow': 'About the Project',
+      'about.title': 'The Sixth Player<br/>on Every Team',
+      'about.p1': 'BE6PLAYER was born from the belief that <strong>data can tell a story</strong> that you simply can\'t see just by watching a game. Every move, every pass, every decision leaves a trace in the numbers.',
+      'about.p2': 'Our channel brings sports statistics, trends and fascinating insights across various leagues and sports. From data breakdowns to surprising facts — <strong>we make sports analytics understandable, engaging and accessible</strong> for every fan.',
+      'about.p3': 'As the sixth player, we see what others overlook. And we share it with you.',
+      'newsletter.eyebrow': 'Newsletter',
+      'newsletter.title': 'Never Miss an Analysis',
+      'newsletter.sub': 'Every new article or video straight to your inbox. No spam, just pure data.',
+      'newsletter.placeholder': 'your@email.com',
+      'newsletter.btn': 'Subscribe',
+      'footer.desc': 'Discover the Numbers Behind the Games. Sports statistics, trends and analytical insights for every fan.',
+      'footer.copy': '© 2025 BE6PLAYER. All rights reserved.',
+      'reader.edit': '✎ Edit',
+      'reader.delete': '✕ Delete',
+      'video.watch': '▶ Watch video',
+    },
+    cs: {
+      'nav.videos': 'Videa',
+      'nav.blog': 'Blog',
+      'nav.stats': 'Statistiky',
+      'nav.about': 'O projektu',
+      'hero.label': 'Sportovní analytika',
+      'hero.tagline': 'Discover the Numbers Behind the Games',
+      'hero.cta': 'Sledovat na YouTube',
+      'hero.scroll': 'Scroll',
+      'week.label': '⬡ Číslo týdne',
+      'section.videos': 'Videa',
+      'section.allVideos': 'Všechna videa',
+      'blog.eyebrow': 'Analýzy & komentáře',
+      'blog.empty': 'Zatím žádné články.',
+      'stats.eyebrow': 'Analýzy & data',
+      'stats.title': 'Statistiky & vizualizace',
+      'stats.empty': 'Zatím žádné statistiky.',
+      'about.eyebrow': 'O projektu',
+      'about.title': 'Šestý hráč<br/>v každém týmu',
+      'about.p1': 'BE6PLAYER vznikl z přesvědčení, že <strong>data dokáží vyprávět příběh</strong>, který pouhým sledováním zápasu nevidíte. Každý pohyb, každá přihrávka, každé rozhodnutí zanechává stopu v číslech.',
+      'about.p2': 'Náš kanál přináší sportovní statistiky, trendy a fascinující poznatky napříč různými ligami a sporty. Od datových rozborů po překvapivá fakta — <strong>děláme sportovní analytiku srozumitelnou, poutavou a přístupnou</strong> pro každého fanouška.',
+      'about.p3': 'Jako šestý hráč vidíme to, co ostatní přehlížejí. A sdílíme to s vámi.',
+      'newsletter.eyebrow': 'Newsletter',
+      'newsletter.title': 'Žádná analýza vám neunikne',
+      'newsletter.sub': 'Každý nový článek nebo video přímo do vaší schránky. Bez spamu, jen čistá data.',
+      'newsletter.placeholder': 'váš@email.cz',
+      'newsletter.btn': 'Odebírat',
+      'footer.desc': 'Discover the Numbers Behind the Games. Sportovní statistiky, trendy a analytické pohledy pro každého fanouška.',
+      'footer.copy': '© 2025 BE6PLAYER. Všechna práva vyhrazena.',
+      'reader.edit': '✎ Upravit',
+      'reader.delete': '✕ Smazat',
+      'video.watch': '▶ Přehrát video',
+    }
+  };
+
+  let currentLang = localStorage.getItem('be6player_lang') || 'en';
+
+  function t(key) {
+    return TRANSLATIONS[currentLang][key] || TRANSLATIONS['en'][key] || key;
+  }
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('be6player_lang', lang);
+
+    // Update switcher buttons
+    document.getElementById('lang-en').style.background = lang === 'en' ? 'var(--amber)' : 'none';
+    document.getElementById('lang-en').style.color      = lang === 'en' ? 'white' : 'var(--amber)';
+    document.getElementById('lang-cs').style.background = lang === 'cs' ? 'var(--amber)' : 'none';
+    document.getElementById('lang-cs').style.color      = lang === 'cs' ? 'white' : 'var(--amber)';
+
+    // Update all data-i18n elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const val = t(key);
+      if (val) el.innerHTML = val;
+    });
+
+    // Update placeholders
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      const val = t(key);
+      if (val) el.placeholder = val;
+    });
+
+    // Re-render dynamic content with correct language
+    renderBlog();
+    renderStats();
+    renderVideos();
+  }
+
+  // ── Apply language on load ──
+  (function initLang() {
+    const lang = localStorage.getItem('be6player_lang') || 'en';
+    setLanguage(lang);
+  })();
+</script>
+
+<!-- ══ BLOG CS EXEC ══ -->
+<script>
+  function blogCsExec(cmd, val) {
+    document.getElementById('blog-editor-cs-area').focus();
+    document.execCommand(cmd, false, val || null);
+  }
+  function statCsExec(cmd, val) {
+    document.getElementById('stat-editor-cs-area').focus();
+    document.execCommand(cmd, false, val || null);
+  }
+</script>
+
+</body>
+</html>
